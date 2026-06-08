@@ -1,6 +1,6 @@
-"""LocalMind web chat — streaming answers, clickable sources, conversation memory.
+"""Deskworks web chat — streaming answers, clickable sources, conversation memory.
 
-Run:  localmind web    then open http://127.0.0.1:5007
+Run:  deskworks web    then open http://127.0.0.1:5007
 Fully local; the only network call is to your configured model endpoint.
 """
 from __future__ import annotations
@@ -56,7 +56,7 @@ function add(who,cls){const d=document.createElement('div');d.className='msg '+c
 async function ask(q){q=(q||qEl.value).trim();if(!q)return;
   qEl.value='';send.disabled=true;
   add('you','user').querySelector('.bubble').textContent=q;
-  const m=add('LocalMind','bot');const bub=m.querySelector('.bubble'),src=m.querySelector('.src');
+  const m=add('Deskworks','bot');const bub=m.querySelector('.bubble'),src=m.querySelector('.src');
   let answer='';
   const res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({q,history:hist})});
@@ -82,7 +82,7 @@ def create_app(cfg: Config) -> Flask:
 
     @app.route("/")
     def home():
-        return PAGE.replace("__TITLE__", cfg.web.get("title", "LocalMind"))
+        return PAGE.replace("__TITLE__", cfg.web.get("title", "Deskworks"))
 
     @app.route("/ask", methods=["POST"])
     def ask():
@@ -128,10 +128,10 @@ def create_app(cfg: Config) -> Flask:
 def run(cfg: Config | None = None):
     cfg = cfg or load_config()
     # serving keeps the embedder on CPU by default (low memory); override via env
-    os.environ.setdefault("LOCALMIND_EMBED_DEVICE", cfg.embed.get("device", "cpu"))
+    os.environ.setdefault("DESKWORKS_EMBED_DEVICE", cfg.embed.get("device", "cpu"))
     app = create_app(cfg)
     host, port = cfg.web["host"], int(cfg.web["port"])
     # warm the model + index in the background so the first query is fast
     threading.Thread(target=lambda: core.warmup(cfg), daemon=True).start()
-    print(f"LocalMind chat -> http://{host}:{port}")
+    print(f"Deskworks chat -> http://{host}:{port}")
     app.run(host=host, port=port, threaded=True)

@@ -1,7 +1,7 @@
 # Model providers
 
-LocalMind talks to any **OpenAI-compatible** `/chat/completions` endpoint. Set
-`[llm]` in your `localmind.toml`. Embeddings always run locally (BGE via
+Deskworks talks to any **OpenAI-compatible** `/chat/completions` endpoint. Set
+`[llm]` in your `deskworks.toml`. Embeddings always run locally (BGE via
 sentence-transformers), so retrieval is offline regardless of the chat provider.
 
 ## Ollama (recommended default)
@@ -80,5 +80,5 @@ query_prefix = "Represent this sentence for searching relevant passages: "
 
 Some reasoning models (e.g. Qwen3) emit `<think>…</think>` blocks. Setting
 `disable_thinking = true` sends `chat_template_kwargs.enable_thinking = false`,
-which those servers honor; other servers ignore it harmlessly. LocalMind also
+which those servers honor; other servers ignore it harmlessly. Deskworks also
 strips any `<think>` blocks from output as a safety net.

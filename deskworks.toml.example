@@ -1,5 +1,5 @@
-# LocalMind configuration. Copy to `localmind.toml` and edit.
-#   cp localmind.toml.example localmind.toml
+# Deskworks configuration. Copy to `deskworks.toml` and edit.
+#   cp deskworks.toml.example deskworks.toml
 # Paths support ~ and environment variables.
 
 [corpus]
@@ -39,8 +39,8 @@ device = "cpu"               # cpu | mps (Apple) | cuda
 query_prefix = "Represent this sentence for searching relevant passages: "
 
 [index]
-dir = "~/.localmind/index"
-cache = "~/.localmind/pdf_cache"
+dir = "~/.deskworks/index"
+cache = "~/.deskworks/pdf_cache"
 chunk_chars = 1100
 chunk_overlap = 180
 top_k = 10                   # passages fed to the LLM per answer
@@ -51,10 +51,10 @@ pdf_max_chars = 90000        # cap full-text extracted per PDF
 [web]
 host = "127.0.0.1"
 port = 5007
-title = "LocalMind"          # shown in the browser chat header
+title = "Deskworks"          # shown in the browser chat header
 
 [summarize]
-out_dir = "~/.localmind/summaries"
+out_dir = "~/.deskworks/summaries"
 # The bulk summarizer asks the local model for one line + theme tags per doc.
 # Customize the taxonomy line for your domain (default is generic).
 taxonomy_hint = "THEMES: <3-5 comma-separated topical tags>"

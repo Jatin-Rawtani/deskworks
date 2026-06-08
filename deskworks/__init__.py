@@ -1,4 +1,4 @@
-"""LocalMind — your private, always-on AI over your own documents.
+"""Deskworks — your private, always-on AI over your own documents.
 
 100% local retrieval (BGE embeddings + BM25 + reciprocal-rank fusion),
 answers from any OpenAI-compatible model. Zero API tokens required.

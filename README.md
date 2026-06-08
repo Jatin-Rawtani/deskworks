@@ -1,8 +1,8 @@
-# LocalMind
+# Deskworks
 
 **Your private, always-on AI over your own documents. 100% local. Zero API tokens.**
 
-Point LocalMind at any folder of PDFs, notes, and markdown. It builds a hybrid
+Point Deskworks at any folder of PDFs, notes, and markdown. It builds a hybrid
 search index on your machine and gives you a streaming chat — with citations back
 to your source files — answered by any model you choose. Nothing leaves your
 computer except the prompt you send to your own (typically local) model.
@@ -22,7 +22,7 @@ ingest  →  summarize  →  index  →  ask / chat  →  dashboard
 
 ## Why it's different
 
-Most "chat with your docs" projects are framework demos. LocalMind is built to
+Most "chat with your docs" projects are framework demos. Deskworks is built to
 *live on your machine and just run*:
 
 - **Fully local retrieval.** Semantic embeddings (BGE) + keyword search (BM25)
@@ -44,7 +44,7 @@ Most "chat with your docs" projects are framework demos. LocalMind is built to
 
 ```bash
 # 1. Install (Python 3.10+)
-git clone https://github.com/Jatin-Rawtani/localmind && cd localmind
+git clone https://github.com/Jatin-Rawtani/deskworks && cd deskworks
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
 
@@ -52,30 +52,30 @@ pip install -e .
 ollama pull qwen2.5:7b      # or llama3.1:8b, mistral, etc.
 
 # 3. Configure
-localmind init             # writes localmind.toml
+deskworks init             # writes deskworks.toml
 #   edit [corpus].paths  -> your folders
 #   edit [llm]           -> your model endpoint (Ollama default already set)
 
 # 4. Build + chat
-localmind ingest           # cache PDF text (skip if you only have md/txt)
-localmind index            # build the hybrid index
-localmind web              # open http://127.0.0.1:5007
+deskworks ingest           # cache PDF text (skip if you only have md/txt)
+deskworks index            # build the hybrid index
+deskworks web              # open http://127.0.0.1:5007
 ```
 
 CLI one-shots:
 
 ```bash
-localmind ask "what does my library say about X?"
-localmind summarize ~/papers my_papers     # -> ~/.localmind/summaries/my_papers.{md,csv}
-localmind dashboard ~/.localmind/summaries/my_papers.csv
-localmind status                            # config + index + model reachability
+deskworks ask "what does my library say about X?"
+deskworks summarize ~/papers my_papers     # -> ~/.deskworks/summaries/my_papers.{md,csv}
+deskworks dashboard ~/.deskworks/summaries/my_papers.csv
+deskworks status                            # config + index + model reachability
 ```
 
 ---
 
 ## Configuration
 
-Everything lives in `localmind.toml` (copy from `localmind.toml.example`). The two
+Everything lives in `deskworks.toml` (copy from `deskworks.toml.example`). The two
 sections you must set:
 
 ```toml
@@ -99,12 +99,12 @@ how retrieval works.
 **macOS:** edit and install the launch agent —
 
 ```bash
-cp service/com.localmind.brain.plist.example ~/Library/LaunchAgents/com.localmind.brain.plist
+cp service/com.deskworks.brain.plist.example ~/Library/LaunchAgents/com.deskworks.brain.plist
 # edit the two REPLACE_ME paths, then:
-launchctl load -w ~/Library/LaunchAgents/com.localmind.brain.plist
+launchctl load -w ~/Library/LaunchAgents/com.deskworks.brain.plist
 ```
 
-**Linux:** see `service/localmind.service.example` (systemd user service).
+**Linux:** see `service/deskworks.service.example` (systemd user service).
 
 Both autostart at login and restart on crash. Your library is always one tab away.
 
@@ -128,10 +128,10 @@ Standard techniques, carefully assembled and productionized. Full detail in
 
 ## Privacy
 
-LocalMind never uploads your documents. The only outbound request is the chat
+Deskworks never uploads your documents. The only outbound request is the chat
 completion to the `base_url` you configure — set that to a local server (Ollama,
 LM Studio, vLLM, Rapid-MLX) and the system is fully offline after the one-time
-embedding-model download. Index, PDF cache, summaries, and your `localmind.toml`
+embedding-model download. Index, PDF cache, summaries, and your `deskworks.toml`
 are git-ignored so you can't accidentally commit private content.
 
 ## License

@@ -85,7 +85,7 @@ def build_dashboard(cfg: Config, csv_path: str, out_html: str | None = None,
 
     out_html = out_html or os.path.join(os.path.dirname(csv_path) or ".", "dashboard.html")
     page = (_TMPL
-            .replace("__TITLE__", html.escape(title or cfg.web.get("title", "LocalMind") + " — Library"))
+            .replace("__TITLE__", html.escape(title or cfg.web.get("title", "Deskworks") + " — Library"))
             .replace("__N__", str(len(data)))
             .replace("__DATA__", json.dumps(data, ensure_ascii=False)))
     with open(out_html, "w") as f:

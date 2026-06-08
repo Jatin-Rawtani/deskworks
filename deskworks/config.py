@@ -1,10 +1,10 @@
-"""Configuration loader for LocalMind.
+"""Configuration loader for Deskworks.
 
 Resolution order:
-  1. $LOCALMIND_CONFIG if set
-  2. ./localmind.toml in the current directory
-  3. ~/.localmind/localmind.toml
-Falls back to built-in defaults so `localmind` runs even with no config
+  1. $DESKWORKS_CONFIG if set
+  2. ./deskworks.toml in the current directory
+  3. ~/.deskworks/deskworks.toml
+Falls back to built-in defaults so `deskworks` runs even with no config
 (it just won't have any corpus paths until you set them).
 """
 from __future__ import annotations
@@ -36,8 +36,8 @@ DEFAULTS = {
         "query_prefix": "Represent this sentence for searching relevant passages: ",
     },
     "index": {
-        "dir": "~/.localmind/index",
-        "cache": "~/.localmind/pdf_cache",
+        "dir": "~/.deskworks/index",
+        "cache": "~/.deskworks/pdf_cache",
         "chunk_chars": 1100,
         "chunk_overlap": 180,
         "top_k": 10,
@@ -45,9 +45,9 @@ DEFAULTS = {
         "max_chunks_per_doc": 2,
         "pdf_max_chars": 90000,
     },
-    "web": {"host": "127.0.0.1", "port": 5007, "title": "LocalMind"},
+    "web": {"host": "127.0.0.1", "port": 5007, "title": "Deskworks"},
     "summarize": {
-        "out_dir": "~/.localmind/summaries",
+        "out_dir": "~/.deskworks/summaries",
         "taxonomy_hint": "THEMES: <3-5 comma-separated topical tags>",
     },
 }
@@ -68,13 +68,13 @@ def _deep_merge(base: dict, over: dict) -> dict:
 
 
 def _find_config() -> Path | None:
-    env = os.environ.get("LOCALMIND_CONFIG")
+    env = os.environ.get("DESKWORKS_CONFIG")
     if env and Path(_expand(env)).is_file():
         return Path(_expand(env))
-    local = Path("localmind.toml")
+    local = Path("deskworks.toml")
     if local.is_file():
         return local
-    home = Path(_expand("~/.localmind/localmind.toml"))
+    home = Path(_expand("~/.deskworks/deskworks.toml"))
     if home.is_file():
         return home
     return None
@@ -119,6 +119,6 @@ def load(path: str | None = None) -> Config:
             user = tomllib.load(f)
         data = _deep_merge(DEFAULTS, user)
     # env override for embed device (used by the always-on service)
-    if os.environ.get("LOCALMIND_EMBED_DEVICE"):
-        data["embed"]["device"] = os.environ["LOCALMIND_EMBED_DEVICE"]
+    if os.environ.get("DESKWORKS_EMBED_DEVICE"):
+        data["embed"]["device"] = os.environ["DESKWORKS_EMBED_DEVICE"]
     return Config(data, cfg_path)

@@ -1,5 +1,5 @@
 [project]
-name = "localmind"
+name = "deskworks"
 version = "0.1.0"
 description = "Your private, always-on AI over your own documents. 100% local, zero API tokens, any OpenAI-compatible model."
 readme = "README.md"
@@ -22,14 +22,14 @@ dependencies = [
 extras = ["pdfplumber>=0.11"]
 
 [project.scripts]
-localmind = "localmind.cli:main"
+deskworks = "deskworks.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Jatin-Rawtani/localmind"
+Homepage = "https://github.com/Jatin-Rawtani/deskworks"
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["localmind*"]
+include = ["deskworks*"]

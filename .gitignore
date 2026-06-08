@@ -1,6 +1,6 @@
-# LocalMind — never commit a user's private corpus, index, or config
-localmind.toml
-*.localmind.toml
+# Deskworks — never commit a user's private corpus, index, or config
+deskworks.toml
+*.deskworks.toml
 /index/
 /pdf_cache/
 **/index/

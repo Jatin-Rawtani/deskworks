@@ -1,6 +1,6 @@
 # Architecture
 
-LocalMind is a small, legible RAG system. ~700 lines of Python, no heavy
+Deskworks is a small, legible RAG system. ~700 lines of Python, no heavy
 framework. This document explains every design decision so you can trust and
 modify it.
 
@@ -71,7 +71,7 @@ touching the rest).
 
 ## Performance notes
 
-- **Build on GPU, serve on CPU.** `localmind index` uses Apple MPS (or CUDA) if
+- **Build on GPU, serve on CPU.** `deskworks index` uses Apple MPS (or CUDA) if
   available for the one-time embedding pass; the always-on server pins the
   embedder to CPU to avoid contending with your local LLM for GPU memory.
 - **First-query warmup.** The web server preloads the model + index in a
@@ -87,4 +87,4 @@ touching the rest).
 | `summarize.py` | zero-token bulk folder summaries |
 | `dashboard.py` | self-contained searchable HTML |
 | `web.py` | streaming Flask chat + safe file-open |
-| `cli.py` | `localmind` command |
+| `cli.py` | `deskworks` command |

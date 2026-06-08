@@ -1,14 +1,14 @@
-"""LocalMind command-line interface.
+"""Deskworks command-line interface.
 
-  localmind init                 # write a starter localmind.toml here
-  localmind ingest               # pre-extract + cache PDF full text
-  localmind index                # build the hybrid search index
-  localmind ask "question"       # one-shot answer in the terminal
-  localmind ask                  # interactive Q&A loop
-  localmind web                  # start the browser chat (foreground)
-  localmind summarize <folder> <name>   # bulk local summaries -> md/csv
-  localmind dashboard <csv>      # build a searchable HTML dashboard
-  localmind status               # show config + index + model reachability
+  deskworks init                 # write a starter deskworks.toml here
+  deskworks ingest               # pre-extract + cache PDF full text
+  deskworks index                # build the hybrid search index
+  deskworks ask "question"       # one-shot answer in the terminal
+  deskworks ask                  # interactive Q&A loop
+  deskworks web                  # start the browser chat (foreground)
+  deskworks summarize <folder> <name>   # bulk local summaries -> md/csv
+  deskworks dashboard <csv>      # build a searchable HTML dashboard
+  deskworks status               # show config + index + model reachability
 """
 from __future__ import annotations
 import os, sys, json, shutil, urllib.request
@@ -22,12 +22,12 @@ def _cfg(args):
 
 
 def cmd_init(args):
-    dest = "localmind.toml"
+    dest = "deskworks.toml"
     if os.path.exists(dest):
         print(f"{dest} already exists — not overwriting.")
         return
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    example = os.path.join(here, "localmind.toml.example")
+    example = os.path.join(here, "deskworks.toml.example")
     if os.path.exists(example):
         shutil.copy(example, dest)
     else:  # installed as a package without the example shipped
@@ -35,7 +35,7 @@ def cmd_init(args):
         import tomllib  # noqa
         print("# edit this file", file=sys.stderr)
     print(f"Wrote {dest}. Edit [corpus].paths and [llm] to match your setup, then run:\n"
-          f"  localmind ingest && localmind index && localmind web")
+          f"  deskworks ingest && deskworks index && deskworks web")
 
 
 def cmd_ingest(args):
@@ -49,7 +49,7 @@ def cmd_index(args):
     try:
         import torch
         if torch.backends.mps.is_available() and cfg.embed["device"] == "cpu":
-            os.environ.setdefault("LOCALMIND_EMBED_DEVICE", "mps")
+            os.environ.setdefault("DESKWORKS_EMBED_DEVICE", "mps")
     except Exception:
         pass
     from . import core
@@ -78,7 +78,7 @@ def cmd_ask(args):
     if args.question:
         _show(cfg, " ".join(args.question))
         return
-    print("LocalMind — ask about your library (Ctrl-C to quit).")
+    print("Deskworks — ask about your library (Ctrl-C to quit).")
     try:
         while True:
             q = input("\n? ").strip()
@@ -106,11 +106,11 @@ def cmd_dashboard(args):
 
 def cmd_status(args):
     cfg = _cfg(args)
-    print(f"LocalMind {__version__}")
-    print(f"  config:   {cfg.source or '(defaults — no localmind.toml found)'}")
+    print(f"Deskworks {__version__}")
+    print(f"  config:   {cfg.source or '(defaults — no deskworks.toml found)'}")
     print(f"  corpus:   {cfg.corpus_paths() or '(none set)'}")
     print(f"  index:    {cfg.index_dir()}  "
-          f"{'(built)' if os.path.exists(cfg.emb_path()) else '(NOT built — run: localmind index)'}")
+          f"{'(built)' if os.path.exists(cfg.emb_path()) else '(NOT built — run: deskworks index)'}")
     print(f"  embed:    {cfg.embed['model']} on {cfg.embed['device']}")
     print(f"  llm:      {cfg.llm['model']} @ {cfg.llm['base_url']}")
     # ping the model endpoint
@@ -128,11 +128,11 @@ def cmd_status(args):
 
 def main(argv=None):
     import argparse
-    p = argparse.ArgumentParser(prog="localmind", description="Private, local AI over your own documents.")
-    p.add_argument("-c", "--config", help="path to localmind.toml")
+    p = argparse.ArgumentParser(prog="deskworks", description="Private, local AI over your own documents.")
+    p.add_argument("-c", "--config", help="path to deskworks.toml")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("init", help="write a starter localmind.toml").set_defaults(fn=cmd_init)
+    sub.add_parser("init", help="write a starter deskworks.toml").set_defaults(fn=cmd_init)
     sub.add_parser("ingest", help="extract + cache PDF text").set_defaults(fn=cmd_ingest)
     sub.add_parser("index", help="build the hybrid search index").set_defaults(fn=cmd_index)
 

@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Always-on LocalMind on macOS.
+  Always-on Deskworks on macOS.
 
   1. Edit the two REPLACE_ME paths below.
   2. Install:
-       cp service/com.localmind.brain.plist.example ~/Library/LaunchAgents/com.localmind.brain.plist
-       launchctl load -w ~/Library/LaunchAgents/com.localmind.brain.plist
+       cp service/com.deskworks.brain.plist.example ~/Library/LaunchAgents/com.deskworks.brain.plist
+       launchctl load -w ~/Library/LaunchAgents/com.deskworks.brain.plist
   3. It autostarts at login and self-restarts. Open http://127.0.0.1:5007
-  4. Stop:  launchctl unload -w ~/Library/LaunchAgents/com.localmind.brain.plist
+  4. Stop:  launchctl unload -w ~/Library/LaunchAgents/com.deskworks.brain.plist
 -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.localmind.brain</string>
+    <string>com.deskworks.brain</string>
 
     <key>ProgramArguments</key>
     <array>
         <!-- REPLACE_ME: absolute path to the python in your venv -->
         <string>REPLACE_ME/.venv/bin/python</string>
         <string>-m</string>
-        <string>localmind.cli</string>
+        <string>deskworks.cli</string>
         <string>web</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <!-- REPLACE_ME: absolute path to the folder containing your localmind.toml -->
+    <!-- REPLACE_ME: absolute path to the folder containing your deskworks.toml -->
     <string>REPLACE_ME</string>
 
     <key>RunAtLoad</key><true/>
     <key>KeepAlive</key><true/>
     <key>ThrottleInterval</key><integer>10</integer>
 
-    <key>StandardOutPath</key><string>/tmp/localmind.log</string>
-    <key>StandardErrorPath</key><string>/tmp/localmind.err</string>
+    <key>StandardOutPath</key><string>/tmp/deskworks.log</string>
+    <key>StandardErrorPath</key><string>/tmp/deskworks.err</string>
 
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
-        <key>LOCALMIND_EMBED_DEVICE</key><string>cpu</string>
+        <key>DESKWORKS_EMBED_DEVICE</key><string>cpu</string>
     </dict>
 </dict>
 </plist>

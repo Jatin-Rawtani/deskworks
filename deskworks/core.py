@@ -1,4 +1,4 @@
-"""LocalMind core — retrieval + generation engine.
+"""Deskworks core — retrieval + generation engine.
 
 Fully local retrieval: BGE semantic embeddings + BM25 keyword scores fused with
 reciprocal-rank fusion (RRF), de-duplicated per document. Answers are generated
@@ -64,7 +64,7 @@ def get_model(cfg: Config):
     global _model
     if _model is None:
         from sentence_transformers import SentenceTransformer
-        device = os.environ.get("LOCALMIND_EMBED_DEVICE", cfg.embed["device"])
+        device = os.environ.get("DESKWORKS_EMBED_DEVICE", cfg.embed["device"])
         _model = SentenceTransformer(cfg.embed["model"], device=device)
     return _model
 
@@ -76,7 +76,7 @@ def build_index(cfg: Config, verbose: bool = True) -> int:
     chunks = gather_chunks(cfg)
     if not chunks:
         raise SystemExit(
-            "No documents found. Set [corpus].paths in your localmind.toml to "
+            "No documents found. Set [corpus].paths in your deskworks.toml to "
             "folders that contain .pdf/.md/.txt files."
         )
     if verbose:
@@ -102,7 +102,7 @@ def build_index(cfg: Config, verbose: bool = True) -> int:
 def load_index(cfg: Config):
     if "emb" not in _cache:
         if not os.path.exists(cfg.emb_path()):
-            raise SystemExit("No index yet. Run:  localmind index")
+            raise SystemExit("No index yet. Run:  deskworks index")
         _cache["emb"] = np.load(cfg.emb_path())
         rows = []
         with gzip.open(cfg.meta_path(), "rt", encoding="utf-8") as f:
@@ -163,7 +163,7 @@ def retrieve(cfg: Config, query: str, top_k: int | None = None) -> list[dict]:
 
 # ------------------------------------------------------------------ generation
 SYS = (
-    "You are LocalMind, a research assistant answering ONLY from the user's own "
+    "You are Deskworks, a research assistant answering ONLY from the user's own "
     "documents. Use the CONTEXT passages provided. Cite the passages you use with "
     "their bracket numbers like [1], [2]. Prefer specifics — names, numbers, "
     "findings — over generalities. If the answer is not in the context, say plainly: "
