@@ -33,3 +33,8 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["deskworks*"]
+
+[tool.pytest.ini_options]
+# make `deskworks` importable without an editable install (CI runs `pytest` bare)
+pythonpath = ["."]
+testpaths = ["tests"]
