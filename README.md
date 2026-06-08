@@ -1,5 +1,9 @@
 # Deskworks
 
+[![CI](https://github.com/Jatin-Rawtani/deskworks/actions/workflows/ci.yml/badge.svg)](https://github.com/Jatin-Rawtani/deskworks/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+
 **Your private, always-on AI over your own documents. 100% local. Zero API tokens.**
 
 Point Deskworks at any folder of PDFs, notes, and markdown. It builds a hybrid
@@ -125,6 +129,17 @@ Standard techniques, carefully assembled and productionized. Full detail in
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
+
+## Development
+
+```bash
+pip install -e . && pip install pytest
+pytest tests/ -q          # 18 fast unit tests, no network/model needed
+```
+
+Retrieval math (`rrf_fuse`, `dedup_by_key`), chunking, config merge, and parsing
+are pure functions with unit tests. Heavy deps are lazy-imported so the suite runs
+on `numpy + pytest` alone. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Privacy
 

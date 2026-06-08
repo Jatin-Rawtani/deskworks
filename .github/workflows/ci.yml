@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test deps
+        # Unit tests only need numpy (core import) + pytest; tomli on 3.10.
+        # Heavy deps (torch/sentence-transformers/flask) are lazy-imported and
+        # not exercised by the unit suite, so CI stays fast.
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pytest
+          pip install "tomli>=2.0; python_version < '3.11'"
+      - name: Run tests
+        run: pytest tests/ -q

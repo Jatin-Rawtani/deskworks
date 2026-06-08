@@ -118,6 +118,30 @@ def _tok(s: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", s.lower())
 
 
+# --- pure retrieval helpers (unit-tested in tests/) -------------------------
+def rrf_fuse(rankings, k: float = 60.0) -> dict[int, float]:
+    """Reciprocal-rank fusion. `rankings` is a list of ranked index sequences
+    (best first). Returns {index: fused_score} where score = Σ 1/(k + rank)."""
+    fused: dict[int, float] = {}
+    for ranking in rankings:
+        for rank, idx in enumerate(ranking):
+            i = int(idx)
+            fused[i] = fused.get(i, 0.0) + 1.0 / (k + rank)
+    return fused
+
+
+def dedup_by_key(ranked_items, key_of, max_per_key: int):
+    """Keep items in ranked order, allowing at most `max_per_key` per key."""
+    out, seen = [], {}
+    for item in ranked_items:
+        key = key_of(item)
+        if seen.get(key, 0) >= max_per_key:
+            continue
+        seen[key] = seen.get(key, 0) + 1
+        out.append(item)
+    return out
+
+
 def warmup(cfg: Config):
     """Preload model + index so the first query is instant."""
     get_model(cfg).encode(["warm"], normalize_embeddings=True)
@@ -137,22 +161,15 @@ def retrieve(cfg: Config, query: str, top_k: int | None = None) -> list[dict]:
     pool = max(top_k * 4, 40)
     sem_rank = np.argsort(-sem)[:pool]
     lex_rank = np.argsort(-lex)[:pool]
-    K = float(cfg.index["rrf_k"])
-    fused: dict[int, float] = {}
-    for r, idx in enumerate(sem_rank):
-        fused[idx] = fused.get(idx, 0.0) + 1.0 / (K + r)
-    for r, idx in enumerate(lex_rank):
-        fused[idx] = fused.get(idx, 0.0) + 1.0 / (K + r)
+    fused = rrf_fuse([sem_rank, lex_rank], k=float(cfg.index["rrf_k"]))
 
-    max_per_doc = cfg.index["max_chunks_per_doc"]
-    ranked = sorted(fused.items(), key=lambda kv: -kv[1])
-    hits, seen = [], {}
-    for idx, score in ranked:
+    ranked = sorted(fused.items(), key=lambda kv: -kv[1])  # [(idx, score), ...]
+    kept = dedup_by_key(ranked,
+                        key_of=lambda it: (chunks[it[0]]["source"], chunks[it[0]]["title"]),
+                        max_per_key=cfg.index["max_chunks_per_doc"])
+    hits = []
+    for idx, score in kept:
         c = chunks[idx]
-        key = (c["source"], c["title"])
-        if seen.get(key, 0) >= max_per_doc:
-            continue
-        seen[key] = seen.get(key, 0) + 1
         hits.append({"text": c["text"], "source": c["source"], "title": c["title"],
                      "path": c.get("path", ""), "score": float(score),
                      "sem": float(sem[idx])})
