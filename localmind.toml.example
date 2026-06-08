@@ -1,0 +1,60 @@
+# LocalMind configuration. Copy to `localmind.toml` and edit.
+#   cp localmind.toml.example localmind.toml
+# Paths support ~ and environment variables.
+
+[corpus]
+# Folders to index (searched recursively). Point these at YOUR documents.
+paths = [
+  "~/Documents/notes",
+  "~/Documents/papers",
+]
+# File types to ingest.
+include_ext = [".pdf", ".md", ".markdown", ".txt"]
+# Substrings to skip (e.g. archives, drafts).
+exclude_substrings = ["/archive/", "/.git/", "node_modules"]
+
+[llm]
+# ANY OpenAI-compatible /chat/completions endpoint:
+#   Ollama      -> http://localhost:11434/v1   (model e.g. "qwen2.5:7b", "llama3.1:8b")
+#   LM Studio   -> http://localhost:1234/v1
+#   vLLM        -> http://localhost:8000/v1
+#   Rapid-MLX   -> http://localhost:8000/v1
+#   OpenAI      -> https://api.openai.com/v1   (set api_key, model "gpt-4o-mini")
+#   OpenRouter  -> https://openrouter.ai/api/v1
+base_url = "http://localhost:11434/v1"
+model = "qwen2.5:7b"
+api_key = ""                 # leave blank for local servers
+max_tokens = 800
+temperature = 0.2
+# Some reasoning models (e.g. Qwen3) emit <think>…</think>. Set true to disable that
+# via chat_template_kwargs; harmless on models that ignore it.
+disable_thinking = false
+
+[embed]
+# Local embedding model (downloaded once from HuggingFace). Stays offline after.
+model = "BAAI/bge-base-en-v1.5"
+device = "cpu"               # cpu | mps (Apple) | cuda
+# BGE is asymmetric: queries get a prefix, documents don't. Leave as-is for BGE.
+# Set to "" for models that don't need a query instruction (e.g. e5 uses "query: ").
+query_prefix = "Represent this sentence for searching relevant passages: "
+
+[index]
+dir = "~/.localmind/index"
+cache = "~/.localmind/pdf_cache"
+chunk_chars = 1100
+chunk_overlap = 180
+top_k = 10                   # passages fed to the LLM per answer
+rrf_k = 60                   # reciprocal-rank-fusion constant
+max_chunks_per_doc = 2       # diversity: cap passages from any single document
+pdf_max_chars = 90000        # cap full-text extracted per PDF
+
+[web]
+host = "127.0.0.1"
+port = 5007
+title = "LocalMind"          # shown in the browser chat header
+
+[summarize]
+out_dir = "~/.localmind/summaries"
+# The bulk summarizer asks the local model for one line + theme tags per doc.
+# Customize the taxonomy line for your domain (default is generic).
+taxonomy_hint = "THEMES: <3-5 comma-separated topical tags>"

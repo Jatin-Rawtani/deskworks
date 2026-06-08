@@ -1,0 +1,32 @@
+# LocalMind — never commit a user's private corpus, index, or config
+localmind.toml
+*.localmind.toml
+/index/
+/pdf_cache/
+**/index/
+**/pdf_cache/
+*.npy
+*.jsonl.gz
+*.faiss
+
+# summaries / dashboards generated from a real corpus
+/summaries/
+*_summaries.md
+*_summaries.csv
+dashboard.html
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# os / editor
+.DS_Store
+*.log
+.idea/
+.vscode/

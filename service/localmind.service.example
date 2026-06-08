@@ -1,0 +1,26 @@
+# Always-on LocalMind on Linux (systemd user service).
+#
+#   1. Edit the REPLACE_ME paths.
+#   2. Install:
+#        mkdir -p ~/.config/systemd/user
+#        cp service/localmind.service.example ~/.config/systemd/user/localmind.service
+#        systemctl --user daemon-reload
+#        systemctl --user enable --now localmind
+#   3. Open http://127.0.0.1:5007 . Logs:  journalctl --user -u localmind -f
+#   4. Stop:  systemctl --user disable --now localmind
+
+[Unit]
+Description=LocalMind — private local AI over your documents
+After=network.target
+
+[Service]
+# REPLACE_ME: folder containing your localmind.toml
+WorkingDirectory=REPLACE_ME
+# REPLACE_ME: python in your venv
+ExecStart=REPLACE_ME/.venv/bin/python -m localmind.cli web
+Environment=LOCALMIND_EMBED_DEVICE=cpu
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
