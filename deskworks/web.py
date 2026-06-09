@@ -35,14 +35,16 @@ PAGE = r"""<!DOCTYPE html><html lang=en><head><meta charset=utf-8>
  #send:disabled{opacity:.5;cursor:default}
 </style></head><body>
 <header><span class=dot></span><h1>__TITLE__<span>local · private · your documents</span></h1>
-<div class=clear onclick="hist=[];document.getElementById('chat').querySelector('.inner').innerHTML=intro()">clear</div></header>
+<div style="margin-left:auto;display:flex;gap:8px">
+<div class=clear style="margin-left:0" onclick="downloadThread()">⬇ Save</div>
+<div class=clear style="margin-left:0" onclick="clearChat()">clear</div></div></header>
 <div id=chat><div class=inner></div></div>
 <footer><div class=row>
   <input id=q placeholder="Ask about your library…" autocomplete=off>
   <button id=send>Ask</button>
 </div></footer>
 <script>
-let hist=[];
+let hist=[],log=[];
 const chat=document.getElementById('chat').querySelector('.inner');
 const qEl=document.getElementById('q'),send=document.getElementById('send');
 function intro(){return `<div class=ex>Try:&nbsp;
@@ -57,7 +59,7 @@ async function ask(q){q=(q||qEl.value).trim();if(!q)return;
   qEl.value='';send.disabled=true;
   add('you','user').querySelector('.bubble').textContent=q;
   const m=add('Deskworks','bot');const bub=m.querySelector('.bubble'),src=m.querySelector('.src');
-  let answer='';
+  let answer='',sources=[];
   const res=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({q,history:hist})});
   const reader=res.body.getReader(),dec=new TextDecoder();let buf='';
@@ -65,12 +67,24 @@ async function ask(q){q=(q||qEl.value).trim();if(!q)return;
     buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
     for(const ln of lines){if(!ln.startsWith('data:'))continue;
       const ev=JSON.parse(ln.slice(5));
-      if(ev.t==='sources'){src.innerHTML=ev.v.map((h,i)=>
+      if(ev.t==='sources'){sources=ev.v;src.innerHTML=ev.v.map((h,i)=>
         `<a href="/open?path=${encodeURIComponent(h.path)}"><b>[${i+1}]</b> ${esc(h.source)} · ${esc(h.title)}</a>`).join('');}
       else if(ev.t==='delta'){answer+=ev.v;bub.textContent=answer;
         chat.parentElement.scrollTop=chat.parentElement.scrollHeight;}}}
   hist.push({role:'user',content:q});hist.push({role:'assistant',content:answer});
+  log.push({q,answer,sources});
   send.disabled=false;qEl.focus();}
+function clearChat(){hist=[];log=[];chat.innerHTML=intro();}
+function downloadThread(){
+  if(!log.length){alert('Nothing to save yet — ask a question first.');return;}
+  let md='# Deskworks thread — '+new Date().toLocaleString()+'\n\n';
+  log.forEach(x=>{md+='## '+x.q+'\n\n'+x.answer+'\n\n';
+    if(x.sources&&x.sources.length){md+='**Sources**\n';
+      x.sources.forEach((s,i)=>{md+='- ['+(i+1)+'] '+(s.source||'')+' · '+(s.title||'')+'\n';});md+='\n';}
+    md+='---\n\n';});
+  const blob=new Blob([md],{type:'text/markdown'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='deskworks_thread_'+Date.now()+'.md';a.click();
+  URL.revokeObjectURL(a.href);}
 send.onclick=()=>ask();qEl.addEventListener('keydown',e=>{if(e.key==='Enter')ask();});
 qEl.focus();
 </script></body></html>"""
