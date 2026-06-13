@@ -38,6 +38,8 @@ Most "chat with your docs" projects are framework demos. Deskworks is built to
   autostart at login, self-restart, browser chat at `localhost:5007`.
 - **Cite-or-refuse.** Answers cite the passages they used and say *"that isn't in
   your library yet"* rather than hallucinating.
+- **Export your threads.** Save any conversation — questions, answers, and cited
+  sources — to a Markdown file with one click. Stays on your machine.
 - **Zero tokens for ingestion.** Bulk-summarize a whole folder and build a
   searchable dashboard using your local model — no API spend.
 - **Your data stays yours.** Index, cache, and config are git-ignored by default.
