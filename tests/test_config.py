@@ -41,3 +41,27 @@ def test_env_overrides_embed_device(tmp_path, monkeypatch):
     monkeypatch.setenv("DESKWORKS_EMBED_DEVICE", "mps")
     c = config.load(str(cfg))
     assert c.embed["device"] == "mps"
+
+
+def test_model_profiles_merge_and_fallback(tmp_path):
+    cfg = tmp_path / "deskworks.toml"
+    cfg.write_text(
+        '[llm]\nmodel = "base-model"\nmax_tokens = 800\n'
+        '[llm.profiles.smart]\nmodel = "big-model"\nmax_tokens = 1200\n'
+        '[llm.profiles.fast]\nmodel = "small-model"\n'
+    )
+    c = config.load(str(cfg))
+    assert sorted(c.profiles().keys()) == ["fast", "smart"]
+    # profile overrides apply on top of [llm]
+    smart = c.with_profile("smart")
+    assert smart.llm["model"] == "big-model"
+    assert smart.llm["max_tokens"] == 1200
+    # keys the profile doesn't set fall through to [llm]
+    fast = c.with_profile("fast")
+    assert fast.llm["model"] == "small-model"
+    assert fast.llm["max_tokens"] == 800
+    # unknown / empty profile -> unchanged config
+    assert c.with_profile("nope") is c
+    assert c.with_profile(None) is c
+    # original config is not mutated
+    assert c.llm["model"] == "base-model"

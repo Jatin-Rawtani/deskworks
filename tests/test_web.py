@@ -35,3 +35,16 @@ def test_open_rejects_paths_outside_corpus():
     # with no corpus paths configured, every path is outside the allowed roots
     r = _client().get("/open", query_string={"path": "/etc/passwd"})
     assert r.status_code == 403
+
+
+def test_model_status_reports_profiles():
+    r = _client().get("/model/status")
+    assert r.status_code == 200
+    d = r.get_json()
+    assert "model" in d and "profiles" in d
+    assert d["active"] is None          # base [llm] by default
+
+
+def test_model_profile_rejects_unknown():
+    r = _client().post("/model/profile", json={"name": "does-not-exist"})
+    assert r.status_code == 400

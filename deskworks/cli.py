@@ -75,6 +75,8 @@ def _show(cfg, q):
 
 def cmd_ask(args):
     cfg = _cfg(args)
+    if getattr(args, "profile", None):
+        cfg = cfg.with_profile(args.profile)
     if args.question:
         _show(cfg, " ".join(args.question))
         return
@@ -102,6 +104,37 @@ def cmd_dashboard(args):
     from .dashboard import build_dashboard
     out = build_dashboard(_cfg(args), args.csv, args.out)
     print(f"Wrote {out} — open it in a browser.")
+
+
+def cmd_service(args):
+    """Master on/off for the always-on service (launchd on macOS, systemd on Linux).
+    `off` stops everything and disables autostart; `on` brings it back."""
+    import subprocess
+    action = args.action
+    if sys.platform == "darwin":
+        plist = os.path.expanduser("~/Library/LaunchAgents/com.deskworks.brain.plist")
+        if not os.path.exists(plist):
+            print("No service installed. Copy service/com.deskworks.brain.plist.example to\n"
+                  f"  {plist}\nedit the REPLACE_ME paths, then run:  deskworks service on")
+            return
+        if action == "on":
+            subprocess.run(["launchctl", "load", "-w", plist])
+            print("Service ON — autostarts at login. Chat: see [web] port in your config.")
+        elif action == "off":
+            subprocess.run(["launchctl", "unload", "-w", plist])
+            print("Service OFF — stopped and won't autostart until `deskworks service on`.")
+        else:
+            r = subprocess.run(["launchctl", "list"], capture_output=True, text=True)
+            up = "com.deskworks.brain" in r.stdout
+            print(f"Service: {'RUNNING' if up else 'stopped'}")
+    elif sys.platform.startswith("linux"):
+        unit = "deskworks.service"
+        cmds = {"on": ["systemctl", "--user", "enable", "--now", unit],
+                "off": ["systemctl", "--user", "disable", "--now", unit],
+                "status": ["systemctl", "--user", "--no-pager", "status", unit]}
+        subprocess.run(cmds[action])
+    else:
+        print(f"Service control not supported on {sys.platform}.")
 
 
 def cmd_status(args):
@@ -136,8 +169,12 @@ def main(argv=None):
     sub.add_parser("ingest", help="extract + cache PDF text").set_defaults(fn=cmd_ingest)
     sub.add_parser("index", help="build the hybrid search index").set_defaults(fn=cmd_index)
 
-    a = sub.add_parser("ask", help="ask a question"); a.add_argument("question", nargs="*"); a.set_defaults(fn=cmd_ask)
+    a = sub.add_parser("ask", help="ask a question"); a.add_argument("question", nargs="*")
+    a.add_argument("--profile", help="model profile from [llm.profiles.*]"); a.set_defaults(fn=cmd_ask)
     sub.add_parser("web", help="start the browser chat").set_defaults(fn=cmd_web)
+
+    sv = sub.add_parser("service", help="master on/off for the always-on service")
+    sv.add_argument("action", choices=["on", "off", "status"]); sv.set_defaults(fn=cmd_service)
 
     s = sub.add_parser("summarize", help="bulk local summaries of a folder")
     s.add_argument("folder"); s.add_argument("name"); s.set_defaults(fn=cmd_summarize)

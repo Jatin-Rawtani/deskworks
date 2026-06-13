@@ -34,6 +34,11 @@ Most "chat with your docs" projects are framework demos. Deskworks is built to
   long file can't dominate the context.
 - **Provider-agnostic generation.** Any OpenAI-compatible endpoint — Ollama,
   LM Studio, vLLM, Rapid-MLX, or a hosted API. One line of config.
+- **Model profiles.** Define named profiles (e.g. `fast` / `smart`) in config and
+  switch between them from the chat header or `deskworks ask --profile smart`.
+- **Reads scanned PDFs.** If the text backends find nothing, Deskworks falls back
+  to OCR automatically (when `ocrmypdf` is installed) — image-only scans, old
+  course readings, and photocopied chapters become searchable too.
 - **Always-on.** Ships with macOS `launchd` and Linux `systemd` service files —
   autostart at login, self-restart, browser chat at `localhost:5007`.
 - **Cite-or-refuse.** Answers cite the passages they used and say *"that isn't in
@@ -114,6 +119,14 @@ launchctl load -w ~/Library/LaunchAgents/com.deskworks.brain.plist
 
 Both autostart at login and restart on crash. Your library is always one tab away.
 
+Once installed, a master switch controls the whole thing:
+
+```bash
+deskworks service off    # stop everything, free the memory, no autostart
+deskworks service on     # bring it all back
+deskworks service status
+```
+
 ---
 
 ## How retrieval works (short version)
@@ -136,7 +149,7 @@ Standard techniques, carefully assembled and productionized. Full detail in
 
 ```bash
 pip install -e . && pip install pytest
-pytest tests/ -q          # 18 fast unit tests, no network/model needed
+pytest tests/ -q          # fast unit tests, no network/model needed
 ```
 
 Retrieval math (`rrf_fuse`, `dedup_by_key`), chunking, config merge, and parsing
