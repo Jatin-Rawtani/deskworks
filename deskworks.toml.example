@@ -30,6 +30,15 @@ temperature = 0.2
 # via chat_template_kwargs; harmless on models that ignore it.
 disable_thinking = false
 
+# OPTIONAL: named model profiles — switch between them in the web chat header
+# or with `deskworks ask --profile smart "..."`. Each profile overrides keys of
+# [llm] above (typically just `model`; Ollama/LM Studio load models on demand).
+# [llm.profiles.fast]
+# model = "qwen2.5:7b"
+# [llm.profiles.smart]
+# model = "qwen2.5:14b"
+# max_tokens = 1200
+
 [embed]
 # Local embedding model (downloaded once from HuggingFace). Stays offline after.
 model = "BAAI/bge-base-en-v1.5"

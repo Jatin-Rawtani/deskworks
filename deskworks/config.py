@@ -110,6 +110,22 @@ class Config:
     def emb_path(self) -> str: return os.path.join(self.index_dir(), "embeddings.npy")
     def meta_path(self) -> str: return os.path.join(self.index_dir(), "chunks.jsonl.gz")
 
+    # model profiles ([llm.profiles.<name>] tables of [llm] overrides)
+    def profiles(self) -> dict:
+        return self.llm.get("profiles", {}) or {}
+
+    def with_profile(self, name: str | None) -> "Config":
+        """Return a Config whose [llm] has the named profile's overrides applied.
+        Unknown/empty name returns self unchanged."""
+        prof = self.profiles().get(name or "")
+        if not isinstance(prof, dict) or not prof:
+            return self
+        llm = {k: v for k, v in self.llm.items() if k != "profiles"}
+        llm.update(prof)
+        data = dict(self._d)
+        data["llm"] = llm
+        return Config(data, self.source)
+
 
 def load(path: str | None = None) -> Config:
     cfg_path = Path(_expand(path)) if path else _find_config()

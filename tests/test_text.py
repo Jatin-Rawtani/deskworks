@@ -49,3 +49,15 @@ def test_dashboard_builds_html(tmp_path):
     html = open(out).read()
     assert "First doc" in html and "Second doc" in html
     assert "DATA =" in html        # data embedded inline (self-contained)
+
+
+def test_looks_empty_detects_page_marker_only_extractions():
+    from deskworks.ingest import _looks_empty
+    # page markers alone are not real content (the silent-failure case)
+    markers = " ".join(f"--- Page {i} ---" for i in range(1, 40))
+    assert _looks_empty(markers)
+    assert _looks_empty("")
+    assert _looks_empty("   \n\n  ")
+    # real text is kept
+    assert not _looks_empty("x" * 400)
+    assert not _looks_empty(markers + " " + "real words " * 60)

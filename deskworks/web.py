@@ -21,6 +21,11 @@ PAGE = r"""<!DOCTYPE html><html lang=en><head><meta charset=utf-8>
  h1{margin:0;font-size:16px;font-weight:600} h1 span{color:var(--mut);font-weight:400;font-size:12px;margin-left:8px}
  .clear{margin-left:auto;color:var(--mut);font-size:12.5px;cursor:pointer;border:1px solid var(--line);padding:5px 11px;border-radius:8px}
  .clear:hover{color:var(--ink)}
+ .profiles{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:11.5px}
+ .profiles span{padding:5px 10px;cursor:pointer;color:var(--mut);user-select:none}
+ .profiles span.on{background:var(--acc2);color:#0f1714;font-weight:700}
+ .profiles span:hover:not(.on){color:var(--ink)}
+ .modelpill{color:var(--mut);font-size:11.5px;border:1px solid var(--line);padding:5px 10px;border-radius:20px;white-space:nowrap}
  #chat{flex:1;overflow-y:auto;padding:24px} .inner{max-width:880px;margin:0 auto}
  .msg{margin:0 0 22px} .who{font-size:12px;color:var(--mut);margin-bottom:5px}
  .bubble{white-space:pre-wrap} .user .bubble{color:var(--acc2)}
@@ -35,7 +40,9 @@ PAGE = r"""<!DOCTYPE html><html lang=en><head><meta charset=utf-8>
  #send:disabled{opacity:.5;cursor:default}
 </style></head><body>
 <header><span class=dot></span><h1>__TITLE__<span>local · private · your documents</span></h1>
-<div style="margin-left:auto;display:flex;gap:8px">
+<div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+<span class=profiles id=profiles style="display:none"></span>
+<span class=modelpill id=modelpill></span>
 <div class=clear style="margin-left:0" onclick="downloadThread()">⬇ Save</div>
 <div class=clear style="margin-left:0" onclick="clearChat()">clear</div></div></header>
 <div id=chat><div class=inner></div></div>
@@ -75,6 +82,16 @@ async function ask(q){q=(q||qEl.value).trim();if(!q)return;
   log.push({q,answer,sources});
   send.disabled=false;qEl.focus();}
 function clearChat(){hist=[];log=[];chat.innerHTML=intro();}
+async function refreshModel(){try{const s=await(await fetch('/model/status')).json();
+  document.getElementById('modelpill').textContent=s.model;
+  const box=document.getElementById('profiles');
+  if(s.profiles&&s.profiles.length){box.style.display='inline-flex';
+    box.innerHTML=s.profiles.map(p=>`<span class="${p===s.active?'on':''}" onclick="setProfile('${p}')">${p}</span>`).join('');}
+}catch(e){}}
+async function setProfile(name){
+  await fetch('/model/profile',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name})});refreshModel();}
+refreshModel();
 function downloadThread(){
   if(!log.length){alert('Nothing to save yet — ask a question first.');return;}
   let md='# Deskworks thread — '+new Date().toLocaleString()+'\n\n';
@@ -93,10 +110,29 @@ qEl.focus();
 def create_app(cfg: Config) -> Flask:
     app = Flask(__name__)
     allowed_roots = [os.path.realpath(p) for p in cfg.corpus_paths()]
+    # active model profile (None = the base [llm] table)
+    state = {"profile": None}
+
+    def current_cfg() -> Config:
+        return cfg.with_profile(state["profile"])
 
     @app.route("/")
     def home():
         return PAGE.replace("__TITLE__", cfg.web.get("title", "Deskworks"))
+
+    @app.route("/model/status")
+    def model_status():
+        return jsonify({"model": current_cfg().llm["model"],
+                        "active": state["profile"],
+                        "profiles": sorted(cfg.profiles().keys())})
+
+    @app.route("/model/profile", methods=["POST"])
+    def model_profile():
+        name = (request.get_json(force=True) or {}).get("name")
+        if name is not None and name != "" and name not in cfg.profiles():
+            return jsonify({"ok": False, "error": f"unknown profile {name!r}"}), 400
+        state["profile"] = name or None
+        return jsonify({"ok": True, "model": current_cfg().llm["model"], "active": state["profile"]})
 
     @app.route("/ask", methods=["POST"])
     def ask():
@@ -106,7 +142,7 @@ def create_app(cfg: Config) -> Flask:
 
         @stream_with_context
         def gen():
-            for kind, val in core.stream_answer(cfg, q, history):
+            for kind, val in core.stream_answer(current_cfg(), q, history):
                 if kind == "sources":
                     src = [{"source": h["source"], "title": h["title"], "path": h["path"]} for h in val]
                     yield "data:" + json.dumps({"t": "sources", "v": src}) + "\n"

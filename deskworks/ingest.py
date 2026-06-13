@@ -65,12 +65,40 @@ def _pypdf(path: str) -> str:
         return ""
 
 
+def _ocrmypdf(path: str) -> str:
+    """OCR fallback for scanned/image-only PDFs. Used only when the text backends
+    come up empty, and only if `ocrmypdf` is on PATH (brew/apt install ocrmypdf).
+    Writes the recognized text to a sidecar file; the output PDF is discarded."""
+    if not shutil.which("ocrmypdf"):
+        return ""
+    import tempfile
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            sidecar = os.path.join(td, "out.txt")
+            r = subprocess.run(
+                ["ocrmypdf", "--force-ocr", "--sidecar", sidecar,
+                 path, os.path.join(td, "out.pdf")],
+                capture_output=True, timeout=600)
+            if r.returncode == 0 and os.path.exists(sidecar):
+                return _read_text_file(sidecar)
+    except Exception:
+        pass
+    return ""
+
+
+def _looks_empty(txt: str) -> bool:
+    """True when extraction produced no real content (e.g. page markers only)."""
+    real = re.sub(r"---\s*Page\s+\d+\s*---", "", txt or "")
+    return len(re.sub(r"\s+", "", real)) < 300
+
+
 def _extract_pdf(path: str) -> str:
     for fn in (_pdftotext, _pdfplumber, _pypdf):
         txt = fn(path)
-        if txt and len(txt.strip()) > 40:
+        if txt and not _looks_empty(txt):
             return txt
-    return ""
+    # text layers empty or missing -> likely a scanned PDF; try OCR
+    return _ocrmypdf(path)
 
 
 # ----------------------------------------------------------------- public API
@@ -81,10 +109,13 @@ def read_document_text(path: str, cfg: Config) -> str:
         cache_dir = cfg.cache_dir()
         os.makedirs(cache_dir, exist_ok=True)
         cpath = os.path.join(cache_dir, _h(path) + ".txt")
-        if os.path.exists(cpath) and os.path.getsize(cpath) > 40:
-            return _read_text_file(cpath)
+        if os.path.exists(cpath):
+            cached = _read_text_file(cpath)
+            # page markers alone can exceed a size check — validate real content
+            if not _looks_empty(cached):
+                return cached
         txt = _extract_pdf(path)[: cfg.index["pdf_max_chars"]]
-        if len(txt.strip()) > 40:
+        if not _looks_empty(txt):
             with open(cpath, "w") as f:
                 f.write(txt)
         return txt
@@ -106,12 +137,12 @@ def parse_all_pdfs(cfg: Config, verbose: bool = True) -> dict:
                 if any(x in path for x in excludes):
                     continue
                 cpath = os.path.join(cfg.cache_dir(), _h(path) + ".txt")
-                if os.path.exists(cpath) and os.path.getsize(cpath) > 40:
+                if os.path.exists(cpath) and not _looks_empty(_read_text_file(cpath)):
                     skip += 1
                     continue
                 txt = _extract_pdf(path)[: cfg.index["pdf_max_chars"]]
                 name = os.path.basename(path)
-                if len(txt.strip()) < 40:
+                if _looks_empty(txt):
                     fail += 1
                     if verbose:
                         print(f"  FAIL    {name[:60]}")
